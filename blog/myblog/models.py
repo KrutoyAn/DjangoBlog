@@ -2,8 +2,8 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
 from ckeditor_uploader.fields import RichTextUploadingField
+from taggit.managers import TaggableManager
 
-# Create your models here.
 
 class Post(models.Model):
     h1 = models.CharField(max_length=200)
@@ -14,6 +14,7 @@ class Post(models.Model):
     image = models.ImageField()
     created_at = models.DateField(default=timezone.now)
     author = models.ForeignKey(User, on_delete=models.CASCADE)
+    tag = TaggableManager()
 
     def __str__(self):
         return self.title

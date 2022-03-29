@@ -9,7 +9,7 @@ from django.contrib.auth import authenticate
 from .forms import FeedBackForm
 from django.http import HttpResponse
 from django.core.mail import send_mail, BadHeaderError
-
+from django.db.models import Q
 
 # Create your views here.
 class MainView(View):
@@ -26,7 +26,13 @@ class MainView(View):
 class PostDetailView(View):
     def get(self, request, slug, *args, **kwargs):
         post = get_object_or_404(Post, url=slug)
-        return render(request, 'myblog/post_detail.html', context={'post': post})
+        common_tags = Post.tag.most_common()
+        last_posts = Post.objects.all().order_by('-id')[:5]
+        return render(request, 'myblog/post_detail.html', context={
+            'post': post,
+            'common_tags': common_tags,
+            'last_posts': last_posts
+    })
 
 
 class SignUpView(View):
@@ -94,4 +100,37 @@ class SuccessView(View):
     def get(self, request, *args, **kwargs):
         return render(request, 'myblog/success.html', context={
             'title': 'Спасибо'
+        })
+
+
+class SearchResultsView(View):
+    def get(self, request, *args, **kwargs):
+        query = self.request.GET.get('q')
+        results = ""
+        if query:
+            results = Post.objects.filter(
+                Q(h1__icontains=query) | Q(content__icontains=query)
+            )
+        paginator = Paginator(results, 6)
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+        return render(request, 'myblog/search.html', context={
+            'title': 'Serach',
+            'results': page_obj,
+            'count': paginator.count
+
+        })
+
+from taggit.models import Tag
+
+
+class TagView(View):
+    def get(self, request, slug, *args, **kwargs):
+        tag = get_object_or_404(Tag, slug=slug)
+        posts = Post.objects.filter(tag=tag)
+        common_tags = Post.tag.most_common()
+        return render(request, 'myblog/tag.html', context={
+            'title': f'#ТЕГ {tag}',
+            'posts': posts,
+            'common_tags': common_tags
         })
