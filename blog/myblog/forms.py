@@ -1,29 +1,33 @@
 from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
+from .models import Comment
 
-class SigUpForm(forms.Form):
+
+class SignUpForm(forms.Form):
     username = forms.CharField(
         max_length=100,
         required=True,
         widget=forms.TextInput(attrs={
-            'class':"from-contol",
+            'class': "form-control",
             'id': "inputUsername",
+            'placeholder': "Имя пользователя"
         }),
     )
-
     password = forms.CharField(
         required=True,
         widget=forms.PasswordInput(attrs={
-            'class': "from-control",
-            'id': "input",
+            'class': "form-control mt-2",
+            'id': "inputPassword",
+            'placeholder': "Пароль"
         }),
     )
     repeat_password = forms.CharField(
         required=True,
         widget=forms.PasswordInput(attrs={
-            'class': "form-control",
+            'class': "form-control mt-2",
             'id': "ReInputPassword",
+            'placeholder': "Повторите пароль"
         }),
     )
 
@@ -33,8 +37,9 @@ class SigUpForm(forms.Form):
 
         if password != confirm_password:
             raise forms.ValidationError(
-                "Password is not true"
+                "Пароли не совпадают"
             )
+
     def save(self):
         user = User.objects.create_user(
             username=self.cleaned_data['username'],
@@ -96,3 +101,16 @@ class FeedBackForm(forms.Form):
             'placeholder': "Ваше сообщение"
         })
     )
+
+
+class CommentForm(forms.ModelForm):
+
+    class Meta:
+        model = Comment
+        fields = ('text',)
+        widgets = {
+            'text': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3
+            }),
+        }
